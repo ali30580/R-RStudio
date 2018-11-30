@@ -1,0 +1,765 @@
+RedWineDataSetEDA
+========================================================
+
+Load libraries and load CSV file, explore data we have and remove variable x
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+knitr::opts_chunk$set( echo=FALSE,warning=FALSE,message=FALSE)
+
+library(ggplot2)
+library(knitr)
+
+
+red <- read.csv('wineQualityReds.csv')
+
+## Explore variables names and summaries, get working directoy, etc.
+
+names(red)
+str(red)
+
+## We can get our 12 variables min, max, mean, median, etc value.
+summary(red)
+
+## Removing column X from the dataset
+red$X <- NULL
+
+
+```
+
+Creating a new variable: wine_quality. very.good >= 7, good >= 5, bad < 5. 
+
+```{r echo=FALSE,warning=FALSE,message=FALSE, Load_Data}
+
+
+red$wine_quality <- NA
+red$wine_quality <- ifelse(red$quality >= 7, 'very.good', 
+                           ifelse(red$quality >= 5, 'good', 'bad'))
+
+
+summary(str(red$wine_quality))
+
+
+```
+
+
+Using grid.arrange to show plots next to each other and Grouping plots by their chemical catagegories
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+
+p0 <- qplot(x = wine_quality, data = red) + ggtitle('Wine_Quality')
+p1 <- qplot(x = quality, data = red, binwidth = 1) + ggtitle('Quality')
+p2 <- qplot(x = fixed.acidity, data = red) + ggtitle('fixed.acidity')
+p3 <- qplot(x = volatile.acidity, data = red) +   ggtitle('volatile.acidity')
+p4 <- qplot(x = citric.acid, data = red) + ggtitle('citric.acid')
+p5 <- qplot(x = residual.sugar, data = red) + ggtitle('residual.sugar')
+p6 <- qplot(x = chlorides, data = red) + ggtitle('chlorides')
+p7 <- qplot(x = free.sulfur.dioxide, data = red) + ggtitle('free.sulfur.dioxide')
+p8 <- qplot(x = total.sulfur.dioxide, data = red) + ggtitle('total.sulfur.dioxide')
+p9 <- qplot(x = density, data = red) + ggtitle('density')
+p10 <- qplot(x = pH, data = red) + ggtitle('pH')
+p11 <- qplot(x = sulphates, data = red) + ggtitle('sulphates')
+p12 <- qplot(x = alcohol, data = red) + ggtitle('alcohol')
+
+library(gridExtra)
+
+grid.arrange(p0, p1, p2, p3, ncol = 4)
+grid.arrange(p5, p6, p7, p8, ncol = 4)
+grid.arrange(p9, p10, p11, p12, ncol = 4)
+ggsave('multi_variable_hist.png', height = 4, width = 5, dpi = 600)
+
+
+```
+
+An alternative way to create one dimension plot for all variables using ggplot using geom_bar in case of quality
+then Alternative way by using geom_histogram
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+
+ggplot(aes(x = quality), data = red) + geom_bar()
+
+ggplot(aes(x = quality), data = red) + geom_histogram(binwidth = 1, color = 'white') +
+  scale_x_continuous(breaks=seq(1,10,1))
+ggplot(aes(x = fixed.acidity), data = red) + geom_histogram(binwidth = 1, color = 'white') + scale_x_continuous(breaks=seq(4,16,1))
+ggplot(aes(x = volatile.acidity), data = red) + geom_histogram(binwidth = 0.05)
+ggplot(aes(x = citric.acid), data = red) + geom_histogram(binwidth = 0.05, color = 'white') + scale_x_continuous(breaks=seq(0,1, 0.1))
+ggplot(aes(x = residual.sugar), data = red) + geom_histogram(binwidth = 0.5, color = 'white') + scale_x_continuous(breaks=seq(0,16, 1))
+ggplot(aes(x = chlorides), data = red) + geom_histogram(binwidth = 0.01, color = 'white') + scale_x_continuous(breaks=seq(0, 0.6, 0.1))
+ggplot(aes(x = total.sulfur.dioxide), data = red) + geom_histogram(binwidth = 5, color = 'white') + scale_x_continuous(breaks=seq(0,300, 20))
+ggplot(aes(x = free.sulfur.dioxide), data = red) + geom_histogram(binwidth = 2, color = 'white') + scale_x_continuous(breaks=seq(0,80, 5))
+ggplot(aes(x = pH), data = red) + geom_histogram(binwidth = 0.05, color = 'white') + scale_x_continuous(breaks=seq(0,5, 0.1))
+ggplot(aes(x = density), data = red) + geom_histogram(binwidth = 0.0005, color = 'white') + scale_x_continuous(breaks=seq(0.990, 1, 0.005))
+ggplot(aes(x = sulphates), data = red) + geom_histogram(binwidth = 0.05, color = 'white') + scale_x_continuous(breaks=seq(0,2, 0.2))
+ggplot(aes(x = alcohol), data = red) + geom_histogram(binwidth = 0.5, color = 'white') + scale_x_continuous(breaks=seq(8, 15, 1))
+
+
+```
+
+# Univariate Plots Section
+
+taking sqrt of volatile.acidity to get a better distribution.Addind details 
+
+```{r echo=FALSE,warning=FALSE,message=FALSE, Univariate_Plots}
+
+ggplot(aes(x = sqrt(volatile.acidity)), data = red) + geom_histogram(color = I('#985871'), fill = I('#985871'), binwidth = 0.01) + xlab('Volatile Acidity (Sqrt)') + ylab('Count') +
+ggtitle('volatile.acidity') +
+scale_x_continuous(breaks=seq(0, 1.5, 0.2)) +
+ggsave('sqrt(volatile.acidity)_hist.png', height = 4, width = 5, dpi = 600)
+
+```
+
+taking log10 of total.sulfur.dioxide to get a better distribution.Addind details   
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+
+ggplot(aes(x = log10(total.sulfur.dioxide)), data = red) + 
+geom_histogram(fill = I('#985871'), binwidth = 0.03) +
+scale_x_continuous(limits = c(0.6,2.5), breaks = seq(0.6,2.5,0.2)) +
+xlab('Total Sulfur Dioxide (Log10) by (mg / dm^3)') +
+ylab('Count') +
+ggtitle('total.sulfur.dioxide') +
+ggsave('log10(total.sulfur.dioxide))_hist.png', height = 4, width = 5, dpi = 600)
+
+```
+
+taking pH and addind details. Very clear normal distribution around 3.3  
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+ggplot(aes(x = pH), data = red) + 
+geom_histogram(fill = I('#985871'), binwidth = 0.01) +
+scale_x_continuous(limits = c(2.7, 4.1), breaks = seq(2.7,4.1,0.2)) +
+xlab('PH') +
+ylab('Count') +
+ggtitle('pH') +
+ggsave('pH_hist.png', height = 4, width = 5, dpi = 600)
+
+```
+
+
+# Univariate Analysis
+
+### What is the structure of your dataset?
+
+We have 1599 observations and 13 variables. 11 variables are chemical elements that form wine. The last one is quality related. 
+
+### What is/are the main feature(s) of interest in your dataset?
+
+My main goal here to get investigate red wine quality and what variables are impacting it. We need to investigate other variables too. Quality ranges from 3 - 8. normally distributed between 5, 6 and 7. Very a few counts on other quality values. Following are our distribution values, min = 3, 1st Qu. = 5, median = 6, mean = 5.63, 3rd Qu. = 6, and Max = 8
+
+### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+
+-	Fixed acidity normally distributed between 4 and 16 skewed to the left of 14 mostly
+-	Volatile acidity normally distributed between 0 and 1.6 skewed to the left of 1.4 mostly When you take sqrt it     gets shifted to the left of 1. 
+-	Citric acid is distributed all over X - axis. Even when you take sqrt we still have several peaks around 0, 0.45,   and other values. 
+-	Residual sugar normally distributed, skewed left of value 3. Mainly between 1 and 3. Very clear peak by 2
+-	Chlorides normally distributed and mainly around 0.05 and 0.15 with clear peak around 0.1. Again, skewed left of   0.15.
+-	Total sulfur dioxide is skewed to the left on 150. By taking log10 plot becomes nicer between 0.7 and 2.4 
+  normally distributed between 0.9 and 2.2
+-	Free sulfur dioxide is skewed to the left of 40. 
+-	pH is normally distributed 2.7 and 3.9. More concentrated between 3.7 and 2.9. 
+-	Density is normally distributed between 0.990 and 1. Clear peak by 0.997
+-	Sulphates is normally distributed between 0.25 and 1. Clear peak around 0.6
+-	Alcohol has random distribution between 8 and 14 (limits of alcohol). Mostly falling between 9 and 11 with random   peaks
+
+
+### Did you create any new variables from existing variables in the dataset?
+
+Yes, I have created a new variable wine_quality:  very.good >= 7, good >= 5, bad < 5 
+
+### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+
+-	I have added wine_quality variable/column
+-	Removed x variable as it is only an index and not useful 
+-	Took sqrt of fixed acidity, scales, and labels
+-	Took log10 of total sulfur dioxide, with scaling and lables
+-	Added scales and labels to the pH
+
+
+# Bivariate Plots Section
+
+I need to take Correlation Coefficient to examine correlation between different variables 
+COEF of fixed.acidity and citric.acid = 0.67 strong postive correlation. varified by plot
+
+Plotting fixed acidity vs citric acid
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+cor(red$fixed.acidity, red$citric.acid)
+
+ggplot(data = red, aes(x=sqrt(fixed.acidity), y=citric.acid)) +
+geom_jitter(color=I('#985871')) +
+geom_smooth(method = 'loess', color=I('#CB3C33')) +
+geom_smooth(method = 'lm', color=I('#D8A525'))+
+scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+xlab('Fixed Acidity(sqrt)') +
+ylab('Citric Acid') +
+ggtitle('fixed acidity vs citric acid')
+
+
+```
+
+
+
+COEF of fixed.acidity and volatile.acidity = -0.25 slight negative correlation, varified by plots
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+  
+cor(red$fixed.acidity, red$volatile.acidity)
+
+ggplot(data = red, aes(x=sqrt(fixed.acidity), y=volatile.acidity)) +
+geom_jitter(color=I('#985871')) +
+geom_smooth(method = 'loess', color=I('#CB3C33')) +
+geom_smooth(method = 'lm', color=I('#D8A525'))+
+scale_y_continuous(limits = c(0, 1.6), breaks = seq(0, 1.6, 0.2)) +
+xlab('Fixed Acidity(sqrt) by (tartaric acid - g / dm^3)') +
+ylab('volatile Acid by (acetic acid - g / dm^3)') +
+ggtitle('fixed acidity vs volatile.acidity')
+
+```
+
+COEF of volatile.acidity and citric.acid = -0.55 strong negative correlation, varified by plots
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+cor(red$volatile.acidity, red$citric.acid)
+
+ggplot(data = red, aes(x=volatile.acidity, y=citric.acid)) +
+geom_jitter(color=I('#985871')) +
+geom_smooth(method = 'loess', color=I('#CB3C33')) +
+geom_smooth(method = 'lm', color=I('#D8A525'))+
+scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+xlab('volatile acidity (acetic acid - g / dm^3)') +
+ylab('citric acid (g / dm^3)') +
+ggtitle('volatile vs citric acid')
+
+
+
+```
+
+COEF of fixed.acidity and pH = -0.68 strong negative correlation, varified by plots
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+cor(red$fixed.acidity, red$pH)
+  
+ggplot(data = red, aes(x=fixed.acidity, y=pH)) +
+geom_jitter(color=I('#985871')) +
+geom_smooth(method = 'loess', color=I('#CB3C33')) +
+geom_smooth(method = 'lm', color=I('#D8A525'))+
+xlab('citric acid (g / dm^3)') +
+ylab('pH') +
+ggtitle('fixed acidity vs ph')
+
+
+```
+
+
+Same we apply to correlation between quality and all variables what are strong postive and
+neagtive valriables to the quality
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+## COEF quality vs fixed.acidity = 0.12 slightly positive
+cor(red$quality, red$fixed.acidity)
+## COEF quality vs volatile.acidity = -0.39 negative
+cor(red$quality, red$volatile.acidity)
+## COEF quality vs citric.acid = 0.22 slightly positive
+cor(red$quality, red$citric.acid)
+## COEF quality vs residual.sugar = 0.013 slightly positive 
+cor(red$quality, red$residual.sugar)
+## COEF quality vs chlorides = -0.12 slightly positive
+cor(red$quality, red$chlorides)
+## COEF quality vs free.sulfur.dioxide = -0.05 no correlation
+cor(red$quality, red$free.sulfur.dioxide)
+## COEF quality vs total.sulfur.dioxide = -0.18 slight negative
+cor(red$quality, red$total.sulfur.dioxide)
+## COEF quality vs density = -0.17 slightly negative
+cor(red$quality, red$density)
+## COEF quality vs pH = -0.057 no correlation
+cor(red$quality, red$pH)
+## COEF quality vs sulphates = 0.25 slightly positive
+cor(red$quality, red$sulphates)
+## COEF quality vs alcohol = 0.47 positive
+cor(red$quality, red$alcohol)
+
+```
+
+Strongest positive correlation is with alcohol 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+ggplot(data = red, aes(x=as.factor(quality), y=alcohol)) +
+geom_boxplot(aes(fill=I('#985871'))) +
+stat_summary(fun.y = median) +
+coord_cartesian(ylim = c(9,13)) +
+xlab('Quality') +
+ylab('alcohol (% by volume)') +
+ggtitle('quality vs alcohol')
+
+
+
+
+
+```
+
+strogest negative correlation is with volatile.acidity
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+ggplot(data = red, aes(x=as.factor(quality), y=volatile.acidity)) +
+geom_boxplot(aes(fill=I('#985871'))) +
+stat_summary(fun.y = median) +
+coord_cartesian(ylim = c(0, 1.6)) +
+xlab('Quality') +
+ylab('volatile acidity (acetic acid - g / dm^3)') +
+ggtitle('quality vs volatile.acidity')
+
+```
+
+  
+no correlation is with pH
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+ggplot(data = red, aes(x=as.factor(quality), y=pH)) +
+geom_boxplot(aes(fill=I('#985871'))) +
+stat_summary(fun.y = median) +
+coord_cartesian(ylim = c(2.7, 4)) +
+xlab('Quality') +
+ylab('pH') +
+ggtitle('quality vs pH')
+
+
+```
+
+# Bivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+
+Since the quality is my main interest so that I wanted to investigate its correlation coefficient with all other variables.  Here are the results:
+COEF quality vs fixed.acidity = 0.12 slightly positive
+COEF quality vs volatile.acidity = -0.39 negative
+COEF quality vs citric.acid = 0.22 slightly positive
+COEF quality vs residual.sugar = 0.013 slightly positive
+COEF quality vs chlorides = -0.12 slightly positive
+COEF quality vs free.sulfur.dioxide = -0.05 no correlation
+COEF quality vs total.sulfur.dioxide = -0.18 slight negative
+COEF quality vs density = -0.17 slightly negative
+COEF quality vs pH = -0.057 no correlation
+COEF quality vs sulphates = 0.25 slight positive
+COEF quality vs alcohol = 0.47 positive
+
+Our conclusion was, the strongest positive relationship for the quality is was alcohol, while strongest negative is with volatile acidity, and there is no correlation between quality and both of pH and free sulfur dioxide.
+I used both of plots and COR function to verify my findings 
+
+
+### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+
+I wanted to examine the correlation coefficient between acidity components and investigate relationships. I found out there is a strong positive correlation coefficient between fixed acidity and citric acid and it equals 0.67. For fixed acidity vs volatile acidity which is equal -0.25, there is a weak negative correlation. While volatile acidity vs citric acid equals -0.55 which a strong negative correlation coefficient. 
+ I used plots and COR function to cross check my findings.
+
+
+### What was the strongest relationship you found?
+
+The strongest relationship amongst all variables is between fixed acidity and citric acid which is 0.67. While the strongest for quality is with alcohol and it is 0.47 
+
+
+# Multivariate Plots Section
+
+In the multivariate plots I want to examine interesting facts about correlation 
+Coefficient to invstigate both of the strong positive and strong negative to understand
+their behaviors with red wine quality using quality and wine_quality
+
+
+Correlation between fixed acidity vs citric acid facet by quality variable
+Both have strong positive COR between themselves - Checking their relation with quality
+
+Plotting fixed acidity vs citric acid coloring by quality and wine_quality
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+## Plotting fixed acidity vs citric acid coloring by quality and wine_quality
+
+comp1 <- qplot(x = fixed.acidity, y = citric.acid, bimwidth = 0.1, geom_histogram = 'freqpoly', color =    
+         wine_quality, fill = wine_quality, data = red) + 
+         ylim(0, quantile(red$citric.acid, 0.99)) +
+         ggtitle('wine_quality vs citric acid and fixed acidity')
+
+## We can facet by quality here as well. Alternative plot For a better view and more visible grades
+
+qplot(x = fixed.acidity, y = citric.acid, binwidth = 0.1,  geom_histogram = 'freqpoly', color = wine_quality, fill = wine_quality, data = red) + 
+ylim(0, quantile(red$citric.acid, 0.99)) +
+facet_wrap(~quality) +
+ggtitle('wine_quality vs citric acid and fixed acidity and quality')
+
+
+```
+
+Strong negative correlation between fixed acidity and ph with quality
+
+Plotting fixed acidity vs pH coloring by quality and wine_quality
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ ## Plotting fixed acidity vs pH coloring by quality and wine_quality
+
+
+comp2 <- ggplot(data = red, aes(x = pH, y = fixed.acidity)) +
+         geom_point(aes(color = factor(wine_quality)), alpha = 1/2) +
+         ggtitle('wine_quality vs pH and fixed acidity') 
+
+
+## We can facet by quality. Alternative plot For a better view and more visible grades  
+
+ggplot(data = red, aes(x = pH, y = fixed.acidity)) +
+geom_point(aes(color = factor(wine_quality)), alpha = 1/2) +
+facet_wrap(~quality) +
+ggtitle('wine_quality vs pH and fixed acidity and quality') 
+  
+
+```
+
+Grid arrange the strong positive and the strong negtive 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+grid.arrange(comp1, comp2, ncol = 1)
+
+```
+
+Some other interesting plots
+
+wine_quality based on alcohol vs citric.acid and quality. Both have positive COR with
+quality but they don't correlate 
+
+Plotting citric acid vs alcohol coloring by wine_quality
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+## Plotting citric acid vs alcohol coloring by wine_quality
+
+cor(red$citric.acid, red$alcohol)
+  
+ggplot(data = red, aes(x = citric.acid, y = alcohol)) +
+geom_point(aes(color = factor(wine_quality)), alpha = 1/2) +
+xlim(0, quantile(red$citric.acid, 0.98)) +
+facet_wrap(~quality) +
+ggtitle('wine_quality vs alcohol and citric.acid and quality')
+
+
+```
+
+COEF of volatile.acidity and citric.acid = -0.55 strong negative correlation, varified by plots
+
+Plotting citric acid vs volatile acidity
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+## Plotting citric acid vs volatile acidity
+
+cor(red$volatile.acidity, red$citric.acid)
+
+ggplot(data = red, aes(x=volatile.acidity, y=citric.acid)) +
+geom_jitter(color=I('#985871')) +
+geom_smooth(method = 'loess', color=I('#CB3C33')) +
+geom_smooth(method = 'lm', color=I('#D8A525'))+
+scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+ggtitle('wine_quality vs volatile.acidity and citric.acid and quality')
+
+
+```
+
+Another interesting fact about alcohol and density with COR = -0.49. Strong negative to be further analyzed later
+
+Plotting density vs alcohol
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+## Plotting density vs alcohol
+
+cor(red$density, red$alcohol)
+
+ggplot(data = red, aes(x = density, y = alcohol)) +
+geom_point(aes(color = factor(quality)), alpha = 1/2) +
+facet_wrap(~quality, scales = "free") +
+ggtitle('wine_quality vs density and alcohol and quality') 
+
+
+```
+
+another interesting fact about citric acid and pH, COR = -0.54. Strong negative to be further analyzed later
+
+Plotting pH vs citric acid
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+## Plotting pH vs citric acid
+
+cor(red$pH, red$citric.acid)
+
+ggplot(data = red, aes(x = pH, y = citric.acid)) +
+geom_point(aes(color = factor(quality)), alpha = 1/2) +
+facet_wrap(~quality, scales = "free") +
+ggtitle('wine_quality vs density and alcohol and quality') 
+
+
+```
+
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
+
+By looking into the strongest COR values, we notice that fixed acidity and citric acid correlation coefficient is the strongest 0.67. So that we wanted to examine their behavior with quality.
+Both have positive correlation with quality. Citric has a stronger positive COR = 0.22 comparing to the fixed acidity COR = 0.12. 
+Despite of the positive strong correlation amongst themselves and positive COR with quality, I don't see both have a big of a common impact on quality. They do have positive on quality individually but not together. We still more of very good quality skewed to the upper right side a little bit.
+
+On the other hand, looking into the strongest negative correlation between chemicals which is between pH and fixed acidity. I have added some other plots to examine relationships of different chemical elements and their impact on quality. 
+
+
+### Were there any interesting or surprising interactions between features?
+
+Yes, the correlation between alcohol and citric acid. Both have positive correlation with quality separately. But when you take both of them and plot them against each other, weak correlation between them which is verified by COR = 0.109  
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+
+Alcohol and dencity, coloring by quality variable. An interesting relation with negative correlation 
+
+Plotting alcohol vs density
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, plot_1}
+
+## Get the correlation value between alcohol and density
+
+cor(red$alcohol, red$density)
+
+## using ggplt to plot both variables and their quality distribution 
+
+ggplot(data = red, aes(x = density, y = alcohol,
+                      geom_histogram = 'freqpoly', color = as.factor(quality))) +
+                      geom_point(alpha = 1/4) +
+## plotting a linear model smoother 
+  geom_smooth(method = 'lm', color = I('#D8A525')) +
+## plotting loess smoother
+  geom_smooth(method = 'loess', color = I('#CB3C33')) + 
+## scaling both of x and y, adding limits and breaks
+  scale_x_continuous(limits = c(0.990, 1.003), breaks = seq(0.990, 1.003, 0.001)) +
+  scale_y_continuous(limits = c(8, 15), breaks = seq(8, 15, 1)) +
+## removing 0.02% by limiting our plot to 98% on both x and y
+  xlim(0.990, quantile(red$density, 0.98)) +
+  ylim(8, quantile(red$alcohol, 0.98)) +
+  scale_color_brewer(type = "div", palette = "RdYlBu", direction=-1) +
+## Color incoding
+  guides(color=guide_legend(title="Quality\nLevels",
+                            override.aes = list(alpha = 1))) +
+## Labeling x and y
+  xlab('density by (g/ml)') +
+  ylab('alcohol(% by volume)') +
+## adding a theme
+  theme_dark() +
+## Adding title 
+  ggtitle('density and alcohol') 
+
+
+## Alcohol and dencity, coloring by wine_quality variable. Alternative plot For a better view and more visible grades
+  
+ggplot(data = red, aes(x = density, y = alcohol,
+                      geom_histogram = 'freqpoly', color = as.factor(wine_quality))) +
+                      geom_point(alpha = 1) +
+  geom_smooth(method = 'lm', color = I('#D8A525')) +
+  geom_smooth(method = 'loess', color = I('#CB3C33')) + 
+  scale_x_continuous(limits = c(0.990, 1.003), breaks = seq(0.990, 1.003, 0.001)) +
+  scale_y_continuous(limits = c(8, 15), breaks = seq(8, 15, 1)) +
+  xlim(0.990, quantile(red$density, 0.98)) +
+  ylim(8, quantile(red$alcohol, 0.98)) +
+  scale_color_brewer(type = "div", palette = "RdYlBu", direction=-1) +
+  guides(color=guide_legend(title="Quality\nLevels",
+                            override.aes = list(alpha = 1))) +
+  xlab('density by (g/ml)') +
+  ylab('alcohol (% by volume)') +
+  theme_dark() +
+  ggtitle('density and alcohol')
+ 
+
+
+```
+
+### Description One
+
+First plot going to be for alcohol vs density throughout quality.  Looking into the correlation between each other and their correlation individually with quality then as one component. 
+COR of alcohol vs density = -0.49 which is a negative correlation.
+COR of alcohol vs quality = 0.47 Positive
+COR of density vs quality = -0.17 Slightly negative
+That's from COR function stand point and when you investigate the plot you will find out follow observations: 
+-	Most of the wine are concentrated 0.994 and 0.999 with respect to density and between 9 and 12 with respect to alcohol percentage. 1599 is total number
+-	Wine_quality very.good (blue color) which represents quality 7 and 8 is all over plot and mostly above the LM geom smooth. There are 217 types out of 1599 which is 13%
+-	Wine_quality good (green color) which represents quality 5 and 6 and it is all over plot and very well concentrated by the LM geom smooth.  There are 1319 types out of 1599 which is 82%
+-	Wine_quality bad (pink color) which represents quality 3 and 4 is the least number of wine and it is scattered all over plot. There are 63 types out of 1599 which is 3.9%
+As a conclusion of this relationship and its impact on wine quality, we see most of the good quality wines falling where alcohol percentage is higher than 9 and density is less than 1. Apart from that it is just about good quality. concentrated 0.994 and 0.999 with respect to density and between 9 and 12 with respect to alcohol percentage
+There is a very clear negative relationship LM pattern starts with alcohol 12.5 and density 0.993 and it ends at alcohol 10 and density 0.9965. after this point the relation between them weakens up and correlation flattens 
+
+Plotting citric acid vs alcohol
+
+### Plot Two
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_Two}
+
+## citric acid and alcohol, coloring by quality variable. Both have positive correlation with quality but no correlation with each other
+
+cor(red$alcohol, red$citric.acid)
+## using ggplt to plot both variables and their quality distribution 
+ggplot(data = red, aes(x = citric.acid, y = alcohol,
+         geom_histogram = 'freqpoly', color = as.factor(quality))) +
+         geom_point(alpha = 1/2) + 
+## plotting a linear model smoother 
+  geom_smooth(method = 'lm', color = I('#D8A525')) +
+## plotting loess smoother
+  geom_smooth(method = 'loess', color = I('#CB3C33')) +
+## scaling both of x and y, adding limits and breaks
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1)) +
+  scale_y_continuous(limits = c(8, 15), breaks = seq(8, 15, 1)) +
+## Color incoding
+  scale_color_brewer(type = "div", palette = "RdYlBu", direction=-1) +
+  guides(color=guide_legend(title="Quality\nLevels",
+                            override.aes = list(alpha = 1))) +
+## adding a theme
+theme_dark() +
+
+## Adding title 
+ggtitle('citric.acid and alcohol')
+
+## citric acid and alcohol, coloring by wine_quality variable. Alternative plot For a better view and more visible grades
+
+ggplot(data = red, aes(x = citric.acid, y = alcohol,
+         geom_histogram = 'freqpoly', color = as.factor(wine_quality))) +
+         geom_point(alpha = 1) + 
+  geom_smooth(method = 'lm', color = I('#D8A525')) +
+  geom_smooth(method = 'loess', color = I('#CB3C33')) + 
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1)) +
+  scale_y_continuous(limits = c(8, 15), breaks = seq(8, 15, 1)) +
+  xlim(0, quantile(red$citric.acid, 0.98)) +
+  ylim(8, quantile(red$alcohol, 0.98)) +
+  scale_color_brewer(type = "div", palette = "RdYlBu", direction=-1) +
+  guides(color=guide_legend(title="Quality\nLevels",
+                            override.aes = list(alpha = 1))) +
+  theme_dark() +
+  ggtitle('citric.acid and alcohol')
+  
+
+  
+```
+
+### Description Two
+
+second plot going to be for citric acid and alcohol throughout quality.  Looking into the correlation between each other and their correlation individually with quality then as one component. 
+COR of alcohol vs citric acid = 0.1 Almost no correlation
+COR of alcohol vs quality = 0.47 Positive
+COR of citric acid vs quality = 0.22 Slightly positive
+That's from COR function stand point and when you investigate the plot you will find out follow observations: 
+-	Most of the wine are concentrated 0 and 0.7 with respect to citric acid and between 9 and 12 with respect to alcohol percentage. 1599 is total number
+-	Wine_quality very.good (blue color) which represents quality 7 and 8 is mostly above the LM geom smooth. There are 217 types out of 1599 which is 13%
+-	Wine_quality good (green color) which represents quality 5 and 6 and it is all over plot and very well concentrated by the LM geom smooth.  There are 1319 types out of 1599 which is 82%
+-	Wine_quality bad (pink color) which represents quality 3 and 4 is the least number of wine and it is scattered all over plot. There are 63 types out of 1599 which is 3.9%
+As a conclusion of this relationship and its impact on wine quality, we see most of the good quality wines falling where alcohol percentage is higher than 9 and citric acid is less than 0.7. Apart from that it is just about good quality. The no correlation is obvious here
+
+
+### Plot Three
+
+Plotting fixed acidity vs citric acid
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_Three}
+
+## fixed acidity and citric acid, coloring by quality variable. Strongest correlation between two elements and it is 0.67.
+
+cor(red$fixed.acidity, red$citric.acid)
+## using ggplt to plot both variables and their quality distribution 
+ggplot(data = red, aes(x = fixed.acidity, y = citric.acid,
+                    geom_histogram = 'freqpoly', color = as.factor(quality))) +
+                    geom_point(alpha = 1/2) + 
+## plotting a linear model smoother 
+  geom_smooth(method = 'lm', color = I('#D8A525')) +
+## plotting loess smoother
+  geom_smooth(method = 'loess', color = I('#CB3C33')) + 
+## scaling both of x and y, adding limits and breaks
+  scale_x_continuous(limits = c(4, 16), breaks = seq(4, 16, 1)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1)) +
+## removing 0.02% by limiting our plot to 98% on both x and y
+  xlim(4, quantile(red$fixed.acidity, 0.98)) +
+  ylim(0, quantile(red$citric.acid, 0.98)) +
+## Color incoding
+  scale_color_brewer(type = "div", palette = "RdYlBu", direction=-1) +
+  guides(color=guide_legend(title="Quality\nLevels",
+                            override.aes = list(alpha = 1))) +
+## adding a theme
+  theme_dark() +
+## Adding labels to x and y
+  xlab('Fixed Acidity(sqrt) by tartaric acid - g / dm^3))') +
+  ylab('expression(Citric~Acid~(g/dm^{3}))') +
+## Adding title 
+  ggtitle('fixed acidity and citric.acid')
+
+
+## fixed acidity and citric acid, coloring by wine_quality variable. Alternative plot For a better view and more visible grades
+
+ggplot(data = red, aes(x = fixed.acidity, y = citric.acid,
+                   geom_histogram = 'freqpoly', color = as.factor(wine_quality))) +
+                   geom_point(alpha = 1/2) + 
+  geom_smooth(method = 'lm', color = I('#D8A525')) +
+  geom_smooth(method = 'loess', color = I('#CB3C33')) + 
+  scale_x_continuous(limits = c(4, 16), breaks = seq(4, 16, 1)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1)) +
+  xlim(4, quantile(red$fixed.acidity, 0.98)) +
+  ylim(0, quantile(red$citric.acid, 0.98)) +
+  scale_color_brewer(type = "div", palette = "RdYlBu", direction=-1) +
+  guides(color=guide_legend(title="Quality\nLevels",
+                            override.aes = list(alpha = 1)))
+  ggtitle('fixed acidity and citric.acid')
+
+
+```
+
+### Description Three
+
+Third plot going to be for fixed acidity and citric acid throughout quality.  Looking into the correlation between each other and their correlation individually with quality then as one component. 
+COR of fixed acidity vs citric acid = 0.67 strong positive correlation
+COR of fixed acidity vs quality = 0.12 Positive to no correlation 
+COR of citric acid vs quality = 0.22 Slightly positive
+That's from COR function stand point and when you investigate the plot you will find out follow observations: 
+-	Most of the wine are concentrated 0 and 0.7 with respect to citric acid and between 5 and 12.5 with respect to fixed acidityl percentage. 1599 is total number
+-	Wine_quality very.good (blue color) which represents quality 7 and 8 is mostly above the LM geom smooth. There are 217 types out of 1599 which is 13%
+-	Wine_quality good (green color) which represents quality 5 and 6 and it is all over plot and very well concentrated by the LM geom smooth.  There are 1319 types out of 1599 which is 82%
+-	Wine_quality bad (pink color) which represents quality 3 and 4 is the least number of wine and it is scattered all over plot. There are 63 types out of 1599 which is 3.9%
+As a conclusion of this relationship and its impact on wine quality, we see most of the good quality wines falling above the geom smooth lm. 
+There is a very clear strong positive relationship LM pattern starts with fixed acidity 7 and citric acid 0.1 and it ends at fixed acidity 12 and citric acid 0.53. 
+
+
+------
+
+# Reflection
+
+There is a very clear strong positive from previous example and plots, we see that wine is generally is average (good). The correlation examples we did verified some relationship. Adding chemicals and creating a balance between all these ingredients. For examples, we see as alcohol has a positive correlation with quality but by investigating other variables that correlation starts to vanish after a certain amount of density or citric acid. At the end of the day wine follows a chemical formula and balance is an essential
+
+Alcohol, citric acid, pH, and density were my main interest in defining quality. 
+I faced some problem by observing certain relationship trends then they disappear due to the impact of the other chemical elements which is again the nature of wine and its ingredients. I see this project is depending on chemicals only. Probably we can add age, prices, popularity, origin country of where it was made. Having it strictly depending on chemical elements made it had plot clear conclusions
+
+
+
+
+
+
+
+
